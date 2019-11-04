@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """Read a Plantower PMS7003 serial sensor data.
 
 A simple script to test the Plantower PMS7003 serial particulate sensor.
@@ -49,12 +51,15 @@ SOFTWARE.
 
 import os
 import time
-
+from datetime import datetime
 import serial
 
-physicalPort = 'COM3'
+physicalPort = '/dev/ttyUSB1'
 
 serialPort = serial.Serial(physicalPort)  # open serial port
+logger = open('pms7003-' + str(datetime.now()).replace(' ', '-').replace(':', '-') + '.csv', 'w')
+
+logger.write('Time,PM1.0,PM2.5,PM10,PM1.0 ATM,PM2.5 ATM,PM10 ATM,Count 0.3um/0.1l,Count 0.5um/0.1l,Count 1.0um/0.1l,Count 2.5um/0.1l,Count 5.0um/0.1l,Count 10um/0.1l,Version,Error,FrameLen\n')
 
 while True:
     # Check if we have enough data to read a payload
@@ -94,7 +99,7 @@ while True:
                 inputChecksum = inputChecksum + data[x]
 
             # Clear the screen before displaying the next set of data
-            os.system('cls')  # Set to 'cls' on Windows, 'clear' on linux
+            os.system('clear')  # Set to 'cls' on Windows, 'clear' on linux
             print("PMS7003 Sensor Data:")
             print("PM1.0 = " + str(concPM1_0_CF1) + " ug/m3")
             print("PM2.5 = " + str(concPM2_5_CF1) + " ug/m3")
@@ -111,6 +116,24 @@ while True:
             print("Version = " + str(version))
             print("Error Code = " + str(errorCode))
             print("Frame length = " + str(frameLength))
+            print("Time = " + str(datetime.now()))
+            logger.write(str(datetime.now()) + ',' +
+                         str(concPM1_0_CF1) + ',' +
+                         str(concPM2_5_CF1) + ',' +
+                         str(concPM10_0_CF1) + ',' +
+                         str(concPM1_0_ATM) + ',' +
+                         str(concPM2_5_ATM) + ',' +
+                         str(concPM10_0_ATM) + ',' +
+                         str(rawGt0_3um) + ',' +
+                         str(rawGt0_5um) + ',' +
+                         str(rawGt1_0um) + ',' +
+                         str(rawGt2_5um) + ',' +
+                         str(rawGt5_0um) + ',' +
+                         str(rawGt10_0um) + ',' +
+                         str(version) + ',' +
+                         str(errorCode) + ',' +
+                         str(frameLength) + '\n'
+                        )
             if inputChecksum != payloadChecksum:
                 print("Warning! Checksums don't match!")
                 print("Calculated Checksum = " + str(inputChecksum))
